@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import type { IncidentDTO, ActiveMode } from "./Dashboard";
 import { formatDuration } from "@/lib/lanes";
 
@@ -23,25 +22,6 @@ export default function LaneGrid({
   onLaneClick,
   onLaneLongPress,
 }: Props) {
-  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressed = useRef(false);
-
-  const startPress = (lane: number) => {
-    longPressed.current = false;
-    pressTimer.current = setTimeout(() => {
-      longPressed.current = true;
-      onLaneLongPress(lane);
-    }, 550);
-  };
-  const endPress = (lane: number) => {
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-    if (!longPressed.current) onLaneClick(lane);
-  };
-  const cancelPress = () => {
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-    longPressed.current = true; // prevent click
-  };
-
   return (
     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-3">
       {lanes.map((lane) => {
@@ -51,47 +31,43 @@ export default function LaneGrid({
         const isFrequent = count >= 5;
 
         const base =
-          "relative aspect-square rounded-xl border transition-all flex flex-col items-center justify-center select-none cursor-pointer overflow-hidden group";
-        
+          "relative aspect-square rounded-xl border transition-all flex flex-col items-center justify-center select-none cursor-pointer overflow-hidden";
+
         let stateClass = "";
         if (isOpen) {
           if (mode === "antena") {
-            stateClass = "bg-gradient-to-br from-red-500/90 to-red-700/90 border-red-300/40 shadow-lg shadow-red-500/30 pulse-down";
+            stateClass =
+              "bg-gradient-to-br from-red-500/90 to-red-700/90 border-red-300/40 shadow-lg shadow-red-500/30 pulse-down";
           } else {
-            stateClass = "bg-gradient-to-br from-amber-500/90 to-amber-700/90 border-amber-300/40 shadow-lg shadow-amber-500/30 pulse-down";
+            stateClass =
+              "bg-gradient-to-br from-amber-500/90 to-amber-700/90 border-amber-300/40 shadow-lg shadow-amber-500/30 pulse-down";
           }
         } else if (isFrequent) {
-          stateClass = "bg-gradient-to-br from-indigo-500/30 to-indigo-700/20 border-indigo-400/30 hover:from-indigo-500/40";
+          stateClass =
+            "bg-gradient-to-br from-indigo-500/30 to-indigo-700/20 border-indigo-400/30 hover:from-indigo-500/40";
         } else if (count > 0) {
-          stateClass = "bg-gradient-to-br from-emerald-500/20 to-emerald-700/10 border-emerald-400/20 hover:from-emerald-500/30";
+          stateClass =
+            "bg-gradient-to-br from-emerald-500/20 to-emerald-700/10 border-emerald-400/20 hover:from-emerald-500/30";
         } else {
           stateClass = "bg-white/5 border-white/10 hover:bg-white/10";
         }
 
         const tooltip = isOpen
-          ? `Vía ${lane} [${mode === "antena" ? "Antena Caída" : "Disco Lleno"}] · click para resolver`
-          : `Vía ${lane} · ${count} eventos de ${mode === "antena" ? "antena" : "disco"} · click para registrar · click derecho para detalle`;
+          ? `Vía ${lane} [${mode === "antena" ? "Antena Caída" : "Disco Lleno"}] · click izquierdo para resolver`
+          : `Vía ${lane} · ${count} eventos · click izquierdo para registrar · click derecho para formulario detallado`;
 
         return (
           <button
             key={lane}
-            onMouseDown={() => startPress(lane)}
-            onMouseUp={() => endPress(lane)}
-            onMouseLeave={cancelPress}
-            onTouchStart={() => startPress(lane)}
-            onTouchEnd={() => endPress(lane)}
-            onTouchCancel={cancelPress}
+            onClick={() => onLaneClick(lane)}
             onContextMenu={(e) => {
               e.preventDefault();
-              cancelPress();
               onLaneLongPress(lane);
             }}
             className={`${base} ${stateClass}`}
             title={tooltip}
           >
-            <span className="text-xs text-white/70 absolute top-1 left-2">
-              V
-            </span>
+            <span className="text-xs text-white/70 absolute top-1 left-2">V</span>
             <span className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
               {lane}
             </span>
