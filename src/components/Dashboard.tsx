@@ -29,6 +29,9 @@ export default function Dashboard() {
   const [editingIncident, setEditingIncident] = useState<IncidentDTO | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [toast, setToast] = useState<string | null>(null);
+  // Bloquea clicks en el grid por 300ms después de cerrar el modal
+  // para evitar que el click del botón "Guardar" pase a través y active una vía
+  const [blockGridClicks, setBlockGridClicks] = useState(false);
 
   // Tick clock cada segundo
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function Dashboard() {
   };
 
   const handleLaneClick = (lane: number) => {
+    if (blockGridClicks) return; // ignorar clicks fantasmas tras cerrar modal
     const open = openByLane.get(lane);
     if (open) {
       resolveIncident(open.id);
@@ -179,6 +183,8 @@ export default function Dashboard() {
   const closeModal = () => {
     setModalLane(null);
     setEditingIncident(null);
+    setBlockGridClicks(true);
+    setTimeout(() => setBlockGridClicks(false), 300);
   };
 
   const openCreateModal = (lane: number) => {
@@ -382,7 +388,8 @@ export default function Dashboard() {
                     onLaneLongPress={(lane) => openCreateModal(lane)}
                   />
                   <p className="mt-4 text-xs text-slate-500">
-                    💡 Click derecho (o mantén presionado) sobre cualquier vía para abrir el formulario detallado y agregar observaciones personalizadas.
+                    💡 <strong>Click izquierdo</strong> en una vía para registrar un evento rápido (o resolver si está activo).<br />
+                    💡 <strong>Click derecho</strong> sobre cualquier vía para abrir el formulario detallado con fecha y notas.
                   </p>
                 </div>
 
